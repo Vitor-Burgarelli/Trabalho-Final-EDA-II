@@ -67,3 +67,7 @@ Todos os códigos-fonte desenvolvidos em C para a implementação das árvores e
     * [ ] Redação da Discussão Final.
 * [ ] **Revisão:** Revisar o relatório e organizar os códigos-fonte para entrega.
 * [ ] **Entrega:** Submeter o Relatório e os Códigos-Fonte até 28/11/2024.
+
+### 5. Execução
+1. Você pode rodar normal no terminal e os dados vão aparecer no terminal OU
+2. Se rodar normal e colocar "./nome_executavel > resultados.csv" ou qualquer outro nome de arquivo que você quiser salvar ele faz um arquivo mais facil de abrir no excel quando a gente for fazer os gráficos :)

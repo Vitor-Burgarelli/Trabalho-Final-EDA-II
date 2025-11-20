@@ -3,192 +3,280 @@
 
 typedef enum { Vermelho, Preto } Cor;
 
-typedef struct no {
-    struct no* pai;
-    struct no* esq;
-    struct no* dir;
+typedef struct noRB {
+    struct noRB* pai;
+    struct noRB* esq;
+    struct noRB* dir;
     Cor cor;
     int valor;
-} No;
+} NoRB;
 
 typedef struct {
-    No* raiz;
-    No* nulo;
-} Arvore;
+    NoRB* raiz;
+    NoRB* nulo; 
+    long long comparacoes; 
+} ArvoreRB;
 
-/* ==================== CRIAÇÃO DE NÓS E DA ÁRVORE ==================== */
+/* ==================== CRIAÇÃO ==================== */
 
-No* criar_no(Arvore* arvore, int valor) {
-    No* novo = (No*)malloc(sizeof(No));
+ArvoreRB* criar_arvore_rb() {
+    ArvoreRB* arvore = (ArvoreRB*)malloc(sizeof(ArvoreRB));
+    arvore->nulo = (NoRB*)malloc(sizeof(NoRB));
+    arvore->nulo->cor = Preto;
+    arvore->nulo->pai = NULL; 
+    arvore->nulo->esq = NULL;
+    arvore->nulo->dir = NULL;
+    arvore->raiz = arvore->nulo;
+    arvore->comparacoes = 0;
+    return arvore;
+}
+
+NoRB* criar_no_rb(ArvoreRB* arvore, int valor) {
+    NoRB* novo = (NoRB*)malloc(sizeof(NoRB));
     novo->valor = valor;
     novo->pai = arvore->nulo;
     novo->esq = arvore->nulo;
     novo->dir = arvore->nulo;
-    novo->cor = Vermelho; // regra: nós começam vermelhos
+    novo->cor = Vermelho;
     return novo;
-}
-
-Arvore* criar_arvore() {
-    Arvore* arvore = (Arvore*)malloc(sizeof(Arvore));
-    arvore->nulo = (No*)malloc(sizeof(No));
-    arvore->nulo->cor = Preto;
-    arvore->nulo->pai = NULL;
-    arvore->nulo->esq = NULL;
-    arvore->nulo->dir = NULL;
-    arvore->raiz = arvore->nulo;
-    return arvore;
 }
 
 /* ==================== ROTAÇÕES ==================== */
 
-void rotacionarEsq(Arvore* arvore, No* no) {
-    No* direita = no->dir;
-    no->dir = direita->esq;
+void rotacionarEsqRB(ArvoreRB* arvore, NoRB* x) {
+    NoRB* y = x->dir;
+    x->dir = y->esq;
 
-    if (direita->esq != arvore->nulo)
-        direita->esq->pai = no;
+    if (y->esq != arvore->nulo)
+        y->esq->pai = x;
 
-    direita->pai = no->pai;
+    y->pai = x->pai;
 
-    if (no->pai == arvore->nulo)
-        arvore->raiz = direita;
-    else if (no == no->pai->esq)
-        no->pai->esq = direita;
+    if (x->pai == arvore->nulo) 
+        arvore->raiz = y;
+    else if (x == x->pai->esq)
+        x->pai->esq = y;
     else
-        no->pai->dir = direita;
+        x->pai->dir = y;
 
-    direita->esq = no;
-    no->pai = direita;
+    y->esq = x;
+    x->pai = y;
 }
 
-void rotacionarDir(Arvore* arvore, No* no) {
-    No* esquerda = no->esq;
-    no->esq = esquerda->dir;
+void rotacionarDirRB(ArvoreRB* arvore, NoRB* y) {
+    NoRB* x = y->esq;
+    y->esq = x->dir;
 
-    if (esquerda->dir != arvore->nulo)
-        esquerda->dir->pai = no;
+    if (x->dir != arvore->nulo)
+        x->dir->pai = y;
 
-    esquerda->pai = no->pai;
+    x->pai = y->pai;
 
-    if (no->pai == arvore->nulo)
-        arvore->raiz = esquerda;
-    else if (no == no->pai->dir)
-        no->pai->dir = esquerda;
+    if (y->pai == arvore->nulo)
+        arvore->raiz = x;
+    else if (y == y->pai->dir)
+        y->pai->dir = x;
     else
-        no->pai->esq = esquerda;
+        y->pai->esq = x;
 
-    esquerda->dir = no;
-    no->pai = esquerda;
-}
-
-/* ==================== BALANCEAMENTO APÓS INSERÇÃO ==================== */
-
-void balancear(Arvore* arvore, No* no) {
-    while (no->pai->cor == Vermelho) {
-        if (no->pai == no->pai->pai->esq) {
-            No* tio = no->pai->pai->dir;
-
-            if (tio->cor == Vermelho) {  // Caso 1: tio vermelho
-                no->pai->cor = Preto;
-                tio->cor = Preto;
-                no->pai->pai->cor = Vermelho;
-                no = no->pai->pai;
-            } else {
-                if (no == no->pai->dir) { // Caso 2/3
-                    no = no->pai;
-                    rotacionarEsq(arvore, no);
-                }
-                no->pai->cor = Preto;
-                no->pai->pai->cor = Vermelho;
-                rotacionarDir(arvore, no->pai->pai);
-            }
-
-        } else {
-            No* tio = no->pai->pai->esq;
-
-            if (tio->cor == Vermelho) {
-                no->pai->cor = Preto;
-                tio->cor = Preto;
-                no->pai->pai->cor = Vermelho;
-                no = no->pai->pai;
-            } else {
-                if (no == no->pai->esq) {
-                    no = no->pai;
-                    rotacionarDir(arvore, no);
-                }
-                no->pai->cor = Preto;
-                no->pai->pai->cor = Vermelho;
-                rotacionarEsq(arvore, no->pai->pai);
-            }
-        }
-    }
-    arvore->raiz->cor = Preto; // regra 2: raiz sempre é preta
+    x->dir = y;
+    y->pai = x;
 }
 
 /* ==================== INSERÇÃO ==================== */
 
-void inserir(Arvore* arvore, int valor) {
-    No* novo = criar_no(arvore, valor);
-    No* y = arvore->nulo;
-    No* x = arvore->raiz;
+void balancear_insercao(ArvoreRB* arvore, NoRB* z) {
+    while (z->pai->cor == Vermelho) {
+        if (z->pai == z->pai->pai->esq) {
+            NoRB* y = z->pai->pai->dir; 
+            if (y->cor == Vermelho) {
+                z->pai->cor = Preto;
+                y->cor = Preto;
+                z->pai->pai->cor = Vermelho;
+                z = z->pai->pai;
+            } else {
+                if (z == z->pai->dir) {
+                    z = z->pai;
+                    rotacionarEsqRB(arvore, z);
+                }
+                z->pai->cor = Preto;
+                z->pai->pai->cor = Vermelho;
+                rotacionarDirRB(arvore, z->pai->pai);
+            }
+        } else {
+            NoRB* y = z->pai->pai->esq;
+            if (y->cor == Vermelho) {
+                z->pai->cor = Preto;
+                y->cor = Preto;
+                z->pai->pai->cor = Vermelho;
+                z = z->pai->pai;
+            } else {
+                if (z == z->pai->esq) {
+                    z = z->pai;
+                    rotacionarDirRB(arvore, z);
+                }
+                z->pai->cor = Preto;
+                z->pai->pai->cor = Vermelho;
+                rotacionarEsqRB(arvore, z->pai->pai);
+            }
+        }
+    }
+    arvore->raiz->cor = Preto;
+}
+
+void inserir_rb(ArvoreRB* arvore, int valor) {
+    NoRB* z = criar_no_rb(arvore, valor);
+    NoRB* y = arvore->nulo;
+    NoRB* x = arvore->raiz;
 
     while (x != arvore->nulo) {
         y = x;
-        if (novo->valor < x->valor)
+        arvore->comparacoes++; 
+        if (z->valor < x->valor)
             x = x->esq;
         else
             x = x->dir;
     }
 
-    novo->pai = y;
-
+    z->pai = y;
     if (y == arvore->nulo)
-        arvore->raiz = novo;
-    else if (novo->valor < y->valor)
-        y->esq = novo;
+        arvore->raiz = z;
+    else if (z->valor < y->valor)
+        y->esq = z;
     else
-        y->dir = novo;
+        y->dir = z;
 
-    balancear(arvore, novo);
+    balancear_insercao(arvore, z);
 }
 
-/* ==================== FUNÇÕES DE IMPRESSÃO ==================== */
+/* ==================== REMOÇÃO ==================== */
 
-void imprimir_inorder(Arvore* arvore, No* no) {
+void transplant(ArvoreRB* arvore, NoRB* u, NoRB* v) {
+    if (u->pai == arvore->nulo)
+        arvore->raiz = v;
+    else if (u == u->pai->esq)
+        u->pai->esq = v;
+    else
+        u->pai->dir = v;
+    v->pai = u->pai;
+}
+
+NoRB* minimum(ArvoreRB* arvore, NoRB* x) {
+    while (x->esq != arvore->nulo) {
+        arvore->comparacoes++; 
+        x = x->esq;
+    }
+    return x;
+}
+
+void balancear_remocao(ArvoreRB* arvore, NoRB* x) {
+    while (x != arvore->raiz && x->cor == Preto) {
+        if (x == x->pai->esq) {
+            NoRB* w = x->pai->dir;
+            // Caso 1
+            if (w->cor == Vermelho) {
+                w->cor = Preto;
+                x->pai->cor = Vermelho;
+                rotacionarEsqRB(arvore, x->pai);
+                w = x->pai->dir;
+            }
+            // Caso 2
+            if (w->esq->cor == Preto && w->dir->cor == Preto) {
+                w->cor = Vermelho;
+                x = x->pai;
+            } else {
+                // Caso 3
+                if (w->dir->cor == Preto) {
+                    w->esq->cor = Preto;
+                    w->cor = Vermelho;
+                    rotacionarDirRB(arvore, w);
+                    w = x->pai->dir;
+                }
+                // Caso 4
+                w->cor = x->pai->cor;
+                x->pai->cor = Preto;
+                w->dir->cor = Preto;
+                rotacionarEsqRB(arvore, x->pai);
+                x = arvore->raiz;
+            }
+        } else { // Simétrico
+            NoRB* w = x->pai->esq;
+            if (w->cor == Vermelho) {
+                w->cor = Preto;
+                x->pai->cor = Vermelho;
+                rotacionarDirRB(arvore, x->pai);
+                w = x->pai->esq;
+            }
+            if (w->dir->cor == Preto && w->esq->cor == Preto) {
+                w->cor = Vermelho;
+                x = x->pai;
+            } else {
+                if (w->esq->cor == Preto) {
+                    w->dir->cor = Preto;
+                    w->cor = Vermelho;
+                    rotacionarEsqRB(arvore, w);
+                    w = x->pai->esq;
+                }
+                w->cor = x->pai->cor;
+                x->pai->cor = Preto;
+                w->esq->cor = Preto;
+                rotacionarDirRB(arvore, x->pai);
+                x = arvore->raiz;
+            }
+        }
+    }
+    x->cor = Preto;
+}
+
+void remover_rb(ArvoreRB* arvore, int valor) {
+    NoRB* z = arvore->raiz;
+    while (z != arvore->nulo) {
+        arvore->comparacoes++; 
+        if (valor == z->valor) break;
+        if (valor < z->valor) z = z->esq;
+        else z = z->dir;
+    }
+    if (z == arvore->nulo) return; 
+
+    NoRB* y = z;
+    NoRB* x;
+    Cor cor_original_y = y->cor;
+
+    if (z->esq == arvore->nulo) {
+        x = z->dir;
+        transplant(arvore, z, z->dir);
+    } else if (z->dir == arvore->nulo) {
+        x = z->esq;
+        transplant(arvore, z, z->esq);
+    } else {
+        y = minimum(arvore, z->dir);
+        cor_original_y = y->cor;
+        x = y->dir;
+        
+        if (y->pai == z) {
+            x->pai = y;
+        } else {
+            transplant(arvore, y, y->dir);
+            y->dir = z->dir;
+            y->dir->pai = y;
+        }
+        
+        transplant(arvore, z, y);
+        y->esq = z->esq;
+        y->esq->pai = y;
+        y->cor = z->cor;
+    }
+
+    if (cor_original_y == Preto)
+        balancear_remocao(arvore, x);
+        
+    free(z);
+}
+
+void liberar_rb(ArvoreRB* arvore, NoRB* no) {
     if (no != arvore->nulo) {
-        imprimir_inorder(arvore, no->esq);
-        printf("%d(%c) ", no->valor, no->cor == Vermelho ? 'R' : 'P');
-        imprimir_inorder(arvore, no->dir);
+        liberar_rb(arvore, no->esq);
+        liberar_rb(arvore, no->dir);
+        free(no);
     }
-}
-
-void imprimir_estrutura(Arvore* arvore, No* no, int nivel) {
-    if (no != arvore->nulo) {
-        imprimir_estrutura(arvore, no->dir, nivel + 1);
-        for (int i = 0; i < nivel; i++) printf("    ");
-        printf("%d(%c)\n", no->valor, no->cor == Vermelho ? 'R':'P');
-        imprimir_estrutura(arvore, no->esq, nivel + 1);
-    }
-}
-
-/* ==================== MAIN PARA TESTE ==================== */
-
-int main() {
-    Arvore* arvore = criar_arvore();
-
-    int valores[] = {4, 2, 1, 3, 8, 6, 5, 7, 9};
-    int n = sizeof(valores)/sizeof(valores[0]);
-
-    for (int i = 0; i < n; i++) {
-        inserir(arvore, valores[i]);
-        printf("\nInseriu %d:\n", valores[i]);
-        imprimir_estrutura(arvore, arvore->raiz, 0);
-        printf("--------------------------------------------------\n");
-    }
-
-    printf("\nInorder final:\n");
-    imprimir_inorder(arvore, arvore->raiz);
-    printf("\n");
-
-    return 0;
 }
