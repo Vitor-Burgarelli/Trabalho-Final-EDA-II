@@ -89,19 +89,9 @@ void removerFilhoDeNo(NoB *no, int idx) {
 
 void splitB(ArvoreB *arvore, NoB *no) {
     int t = arvore->ordem;
-    // O no esta cheio (2*t chaves). Vamos dividir.
-    // Novo no armazenara as chaves t+1 a 2*t.
-    // A chave mediana (indice t) sobe.
-
     NoB *novo = criaNoB(arvore);
     novo->folha = no->folha;
-    novo->total = t - 1; // Se max era 2*t, sobra t-1 pro novo, t-1 pro velho, 1 sobe.
-    
-    // Ajuste para logica do seu codigo original (max = ordem*2)
-    // Se ordem=2 (max 4), split ocorre quando tem 5? Ou quando enche 4?
-    // Vamos assumir que split ocorre quando tem 2*t chaves.
-    // Mediana é index t.
-    
+    novo->total = t - 1; 
     // Copia chaves para o novo no
     for (int j = 0; j < t - 1; j++) { // copia chaves finais
         novo->chaves[j] = no->chaves[j + t + 1];
@@ -271,13 +261,6 @@ void mergeB(ArvoreB *arv, NoB *no, int idx) {
 
     // Desce a chave do pai
     child->chaves[t] = no->chaves[idx]; 
-    // seu codigo original usa t como parametro, entao child tinha t chaves?
-    // Aqui ajustamos para juntar tudo em 'child'
-    // Child tem t-1 chaves (minimo -1, motivo do merge)
-    // Sibling tem t chaves (minimo) ou t-1
-    // Vamos usar 'total' para ser generico
-    
-    // Como é "merge", estamos assumindo que ambos sao pequenos e cabem juntos.
     int mid = child->total;
     child->chaves[mid] = no->chaves[idx];
     

@@ -167,7 +167,12 @@ void remover_avl_no(ArvoreAVL* arv, No* raiz, int valor) {
 
     // Caso 1 e 2: 0 ou 1 filho
     if (atual->esq == NULL || atual->dir == NULL) {
-        No* temp = (atual->esq) ? atual->esq : atual->dir;
+        No* temp;
+        if (atual->esq != NULL) {
+            temp = atual->esq;
+        } else {
+            temp = atual->dir;
+        }
 
         if (temp == NULL) { // Sem filhos
             if (atual == arv->raiz) {
@@ -194,12 +199,6 @@ void remover_avl_no(ArvoreAVL* arv, No* raiz, int valor) {
         // Caso 3: 2 filhos
         No* temp = min_valor_no(atual->dir, &arv->comparacoes);
         atual->valor = temp->valor;
-        // Remove o sucessor recursivamente (mas adaptado para iterativo/ponteiro seria complexo, vamos simplificar chamando a logica no sucessor)
-        // Truque: chame a remocao no temp, que garantidamente tem 0 ou 1 filho.
-        // Para simplificar neste contexto, vamos apenas "trocar" e remover o nó físico temp.
-        
-        // O temp é o minimo da direita, então ele não tem filho esquerdo.
-        // O pai do temp será o ponto de balanceamento.
         
         No* pai_temp = temp->pai;
         No* filho_temp = temp->dir; // Pode ser NULL
