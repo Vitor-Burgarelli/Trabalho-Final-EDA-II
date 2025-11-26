@@ -84,10 +84,12 @@ void get_media_b(int n, int amostras, int ordem, double *m_ins, double *m_rem) {
 }
 
 int main() {
+    FILE *file = fopen("results.csv", "w+");
+
     srand(time(NULL));
 
     // Cabeçalho do CSV
-    printf("N;AVL_Ins;AVL_Rem;RB_Ins;RB_Rem;B1_Ins;B1_Rem;B5_Ins;B5_Rem;B10_Ins;B10_Rem\n");
+    fprintf(file, "N;AVL_Ins;AVL_Rem;RB_Ins;RB_Rem;B1_Ins;B1_Rem;B5_Ins;B5_Rem;B10_Ins;B10_Rem\n");
 
     // Logica do Loop: Garante N=1, depois segue o PASSO
     for (int n = 1; n <= 10000; ) {
@@ -99,7 +101,7 @@ int main() {
         get_media_b(n, AMOSTRAS, 5,  &r.ins_b5,  &r.rem_b5);
         get_media_b(n, AMOSTRAS, 10, &r.ins_b10, &r.rem_b10);
 
-        printf("%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f\n",
+        fprintf(file, "%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f\n",
                n,
                r.ins_avl, r.rem_avl,
                r.ins_rb,  r.rem_rb,

@@ -182,21 +182,29 @@ NoRB* minimum(ArvoreRB* arvore, NoRB* x) {
 
 void balancear_remocao(ArvoreRB* arvore, NoRB* x) {
     while (x != arvore->raiz && x->cor == Preto) {
+        arvore->comparacoes++;
+
         if (x == x->pai->esq) {
             NoRB* w = x->pai->dir;
+
             // Caso 1
+            arvore->comparacoes++;
             if (w->cor == Vermelho) {
                 w->cor = Preto;
                 x->pai->cor = Vermelho;
                 rotacionarEsqRB(arvore, x->pai);
                 w = x->pai->dir;
             }
-            // Caso 2
+
+           // Caso 2
+            arvore->comparacoes++;
             if (w->esq->cor == Preto && w->dir->cor == Preto) {
                 w->cor = Vermelho;
                 x = x->pai;
             } else {
+
                 // Caso 3
+                arvore->comparacoes++;
                 if (w->dir->cor == Preto) {
                     w->esq->cor = Preto;
                     w->cor = Vermelho;
@@ -212,16 +220,21 @@ void balancear_remocao(ArvoreRB* arvore, NoRB* x) {
             }
         } else { // Simétrico
             NoRB* w = x->pai->esq;
+
+            arvore->comparacoes++;
             if (w->cor == Vermelho) {
                 w->cor = Preto;
                 x->pai->cor = Vermelho;
                 rotacionarDirRB(arvore, x->pai);
                 w = x->pai->esq;
             }
+
+            arvore->comparacoes++;
             if (w->dir->cor == Preto && w->esq->cor == Preto) {
                 w->cor = Vermelho;
                 x = x->pai;
             } else {
+                arvore->comparacoes++;
                 if (w->esq->cor == Preto) {
                     w->dir->cor = Preto;
                     w->cor = Vermelho;
