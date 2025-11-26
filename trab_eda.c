@@ -114,5 +114,7 @@ int main() {
         else n += PASSO;
     }
 
+    printf("Arquivo CSV com os resultados gerado no mesmo diretório");
+
     return 0;
 }
