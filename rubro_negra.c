@@ -44,6 +44,8 @@ NoRB* criar_no_rb(ArvoreRB* arvore, int valor) {
 /* ==================== ROTAÇÕES ==================== */
 
 void rotacionarEsqRB(ArvoreRB* arvore, NoRB* x) {
+    arvore->comparacoes++; // Custo de rotação
+
     NoRB* y = x->dir;
     x->dir = y->esq;
 
@@ -64,6 +66,8 @@ void rotacionarEsqRB(ArvoreRB* arvore, NoRB* x) {
 }
 
 void rotacionarDirRB(ArvoreRB* arvore, NoRB* y) {
+    arvore->comparacoes++; // Custo de rotação
+
     NoRB* x = y->esq;
     y->esq = x->dir;
 
@@ -87,8 +91,12 @@ void rotacionarDirRB(ArvoreRB* arvore, NoRB* y) {
 
 void balancear_insercao(ArvoreRB* arvore, NoRB* z) {
     while (z->pai->cor == Vermelho) {
+        arvore->comparacoes++; // Custo do loop/verificação
+
         if (z->pai == z->pai->pai->esq) {
-            NoRB* y = z->pai->pai->dir; 
+            NoRB* y = z->pai->pai->dir;
+
+            arvore->comparacoes++;
             if (y->cor == Vermelho) {
                 z->pai->cor = Preto;
                 y->cor = Preto;
@@ -96,6 +104,7 @@ void balancear_insercao(ArvoreRB* arvore, NoRB* z) {
                 z = z->pai->pai;
             } else {
                 if (z == z->pai->dir) {
+                    arvore->comparacoes++;
                     z = z->pai;
                     rotacionarEsqRB(arvore, z);
                 }
@@ -112,6 +121,7 @@ void balancear_insercao(ArvoreRB* arvore, NoRB* z) {
                 z = z->pai->pai;
             } else {
                 if (z == z->pai->esq) {
+                    arvore->comparacoes++;
                     z = z->pai;
                     rotacionarDirRB(arvore, z);
                 }
@@ -121,6 +131,7 @@ void balancear_insercao(ArvoreRB* arvore, NoRB* z) {
             }
         }
     }
+    arvore->comparacoes++;
     arvore->raiz->cor = Preto;
 }
 

@@ -45,6 +45,8 @@ int fb(No *no) {
 
 /* Rotacoes com atualizacao de altura e pai */
 No *rsd(ArvoreAVL* arv, No *y) {
+    arv->comparacoes++; // Custo de rotação
+
     No *x = y->esq;
     No *T2 = x->dir;
 
@@ -65,6 +67,8 @@ No *rsd(ArvoreAVL* arv, No *y) {
 }
 
 No *rse(ArvoreAVL* arv, No *x) {
+    arv->comparacoes++; // Custo de rotação
+
     No *y = x->dir;
     No *T2 = y->esq;
 
@@ -87,22 +91,30 @@ No *rse(ArvoreAVL* arv, No *x) {
 /* Balanceamento generico */
 void balancear_avl(ArvoreAVL* arv, No* no) {
     while (no != NULL) {
+        arv->comparacoes++; // Custo para verificar o fator de balanceamento
+
         atualizar_altura(no);
         int bal = fb(no);
 
+        arv->comparacoes++;
         if (bal > 1) { // Esquerda pesada
+            arv->comparacoes++; // Custo de decisão de rotação
             if (fb(no->esq) >= 0) {
                 no = rsd(arv, no);
             } else {
                 rse(arv, no->esq);
                 no = rsd(arv, no);
             }
-        } else if (bal < -1) { // Direita pesada
-            if (fb(no->dir) <= 0) {
-                no = rse(arv, no);
-            } else {
-                rsd(arv, no->dir);
-                no = rse(arv, no);
+        } else {
+            arv->comparacoes++;
+            if (bal < -1) { // Direita pesada
+                arv->comparacoes++; // Custo de decisão de rotação
+                if (fb(no->dir) <= 0) {
+                    no = rse(arv, no);
+                } else {
+                    rsd(arv, no->dir);
+                    no = rse(arv, no);
+                }
             }
         }
         no = no->pai;
