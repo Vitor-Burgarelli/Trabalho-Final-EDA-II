@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "avl.c" 
-#include "b.c" 
-#include "rubro_negra.c" 
+#include "avl.c"
+#include "b.c"
+#include "rubro_negra.c"
 
-#define PASSO 100 
+#define PASSO 100
 #define AMOSTRAS 10
 
 typedef struct {
@@ -33,8 +33,9 @@ void get_media_avl(int n, int amostras, double *m_ins, double *m_rem) {
 
         free(chaves);
     }
-    *m_ins = (double)total_ins / amostras;
-    *m_rem = (double)total_rem / amostras;
+
+    *m_ins = ((double)total_ins / amostras) / n;
+    *m_rem = ((double)total_rem / amostras) / n;
 }
 
 void get_media_rb(int n, int amostras, double *m_ins, double *m_rem) {
@@ -57,8 +58,9 @@ void get_media_rb(int n, int amostras, double *m_ins, double *m_rem) {
         free(rb);
         free(chaves);
     }
-    *m_ins = (double)total_ins / amostras;
-    *m_rem = (double)total_rem / amostras;
+
+    *m_ins = ((double)total_ins / amostras) / n;
+    *m_rem = ((double)total_rem / amostras) / n;
 }
 
 void get_media_b(int n, int amostras, int ordem, double *m_ins, double *m_rem) {
@@ -79,8 +81,9 @@ void get_media_b(int n, int amostras, int ordem, double *m_ins, double *m_rem) {
         liberar_b(b);
         free(chaves);
     }
-    *m_ins = (double)total_ins / amostras;
-    *m_rem = (double)total_rem / amostras;
+
+    *m_ins = ((double)total_ins / amostras) / n;
+    *m_rem = ((double)total_rem / amostras) / n;
 }
 
 int main() {
@@ -91,7 +94,6 @@ int main() {
     // Cabeçalho do CSV
     fprintf(file, "N;AVL_Ins;AVL_Rem;RB_Ins;RB_Rem;B1_Ins;B1_Rem;B5_Ins;B5_Rem;B10_Ins;B10_Rem\n");
 
-    // Logica do Loop: Garante N=1, depois segue o PASSO
     for (int n = 1; n <= 10000; ) {
         Resultado r;
 
@@ -102,19 +104,19 @@ int main() {
         get_media_b(n, AMOSTRAS, 10, &r.ins_b10, &r.rem_b10);
 
         fprintf(file, "%d;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f;%.2f\n",
-               n,
-               r.ins_avl, r.rem_avl,
-               r.ins_rb,  r.rem_rb,
-               r.ins_b1,  r.rem_b1,
-               r.ins_b5,  r.rem_b5,
-               r.ins_b10, r.rem_b10);
-        
-        // Controle do incremento para garantir que começa em 1 e depois alinha com o passo
-        if (n == 1) n = PASSO; 
+                n,
+                r.ins_avl, r.rem_avl,
+                r.ins_rb,  r.rem_rb,
+                r.ins_b1,  r.rem_b1,
+                r.ins_b5,  r.rem_b5,
+                r.ins_b10, r.rem_b10);
+
+        if (n == 1) n = PASSO;
         else n += PASSO;
     }
 
-    printf("Arquivo CSV com os resultados gerado no mesmo diretório");
+    printf("Arquivo CSV com os resultados gerado no mesmo diretório\n");
+    fclose(file);
 
     return 0;
 }

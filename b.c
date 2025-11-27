@@ -18,9 +18,9 @@ typedef struct {
 /* ------------------ CRIAÇÃO ------------------ */
 
 NoB* criaNoB(ArvoreB *arvore) {
-    int max_chaves = arvore->ordem * 2; 
+    int max_chaves = arvore->ordem * 2;
     NoB *no = (NoB*)malloc(sizeof(NoB));
-    
+
     no->total = 0;
     no->pai = NULL;
     no->folha = 1;
@@ -46,18 +46,13 @@ ArvoreB* criaArvoreB(int ordem) {
 // Retorna o indice da primeira chave maior ou igual a k
 int buscaBinariaB(ArvoreB* arv, NoB *no, int chave) {
     int inicio = 0, fim = no->total - 1, meio;
-    int resposta = no->total; // Se nao achar maior, retorna total (posicao do filho a direita)
+    int resposta = no->total;
 
     while (inicio <= fim) {
-        arv->comparacoes++; 
         meio = (inicio + fim) / 2;
-        
-        arv->comparacoes++; // Comparacao da chave
         if (no->chaves[meio] == chave) {
-            return meio; 
+            return meio;
         }
-        
-        arv->comparacoes++; // Comparacao de magnitude
         if (no->chaves[meio] > chave) {
             resposta = meio;
             fim = meio - 1;
@@ -70,7 +65,6 @@ int buscaBinariaB(ArvoreB* arv, NoB *no, int chave) {
 
 /* ------------------ AUXILIARES DE REMOÇÃO ------------------ */
 
-// Remove a chave na posicao idx de um no (apenas shift array)
 void removerChaveDeNo(NoB *no, int idx) {
     for (int i = idx; i < no->total - 1; ++i) {
         no->chaves[i] = no->chaves[i+1];
@@ -78,9 +72,8 @@ void removerChaveDeNo(NoB *no, int idx) {
     no->total--;
 }
 
-// Remove o filho na posicao idx (apenas shift array)
 void removerFilhoDeNo(NoB *no, int idx) {
-    for (int i = idx; i < no->total + 1; ++i) { // total+1 é o numero de filhos atual
+    for (int i = idx; i < no->total + 1; ++i) {
         no->filhos[i] = no->filhos[i+1];
     }
 }
@@ -88,16 +81,17 @@ void removerFilhoDeNo(NoB *no, int idx) {
 /* ------------------ SPLIT E INSERÇÃO ------------------ */
 
 void splitB(ArvoreB *arvore, NoB *no) {
+    arvore->comparacoes++; // CONTA O SPLIT (Custo estrutural)
+
     int t = arvore->ordem;
     NoB *novo = criaNoB(arvore);
     novo->folha = no->folha;
-    novo->total = t - 1; 
-    // Copia chaves para o novo no
-    for (int j = 0; j < t - 1; j++) { // copia chaves finais
+    novo->total = t - 1;
+
+    for (int j = 0; j < t - 1; j++) {
         novo->chaves[j] = no->chaves[j + t + 1];
     }
 
-    // Copia filhos se nao for folha
     if (!no->folha) {
         for (int j = 0; j < t; j++) {
             novo->filhos[j] = no->filhos[j + t + 1];
@@ -105,12 +99,9 @@ void splitB(ArvoreB *arvore, NoB *no) {
         }
     }
 
-    // A chave mediana que vai subir
     int chaveMediana = no->chaves[t];
+    no->total = t;
 
-    no->total = t; // Reduz tamanho do no original
-
-    // Inserir no pai
     if (no->pai == NULL) {
         NoB *pai = criaNoB(arvore);
         pai->folha = 0;
@@ -118,21 +109,19 @@ void splitB(ArvoreB *arvore, NoB *no) {
         pai->filhos[0] = no;
         pai->filhos[1] = novo;
         pai->total = 1;
-        
+
         no->pai = pai;
         novo->pai = pai;
         arvore->raiz = pai;
     } else {
         NoB *pai = no->pai;
-        // Achar posicao no pai
         int i = buscaBinariaB(arvore, pai, chaveMediana);
-        
-        // Shift no pai para abrir espaco
+
         for (int j = pai->total; j > i; j--) {
             pai->chaves[j] = pai->chaves[j - 1];
             pai->filhos[j + 1] = pai->filhos[j];
         }
-        
+
         pai->chaves[i] = chaveMediana;
         pai->filhos[i + 1] = novo;
         novo->pai = pai;
@@ -145,12 +134,12 @@ void splitB(ArvoreB *arvore, NoB *no) {
 }
 
 void insereNaoCheioB(ArvoreB *arvore, NoB *no, int chave) {
+    arvore->comparacoes++; // CONTA VISITA AO NÓ (Custo de descida)
+
     int i = no->total - 1;
 
     if (no->folha) {
-        // Achar posicao e fazer shift
         while (i >= 0) {
-            arvore->comparacoes++;
             if (no->chaves[i] > chave) {
                 no->chaves[i + 1] = no->chaves[i];
                 i--;
@@ -161,17 +150,14 @@ void insereNaoCheioB(ArvoreB *arvore, NoB *no, int chave) {
         no->chaves[i + 1] = chave;
         no->total++;
     } else {
-        // Achar filho correto
         while (i >= 0) {
-            arvore->comparacoes++;
             if (no->chaves[i] > chave) i--;
             else break;
         }
         i++;
-        
+
         if (no->filhos[i]->total == arvore->ordem * 2) {
             splitB(arvore, no->filhos[i]);
-            arvore->comparacoes++;
             if (chave > no->chaves[i]) i++;
         }
         insereNaoCheioB(arvore, no->filhos[i], chave);
@@ -182,29 +168,25 @@ void inserir_b(ArvoreB *arvore, int chave) {
     NoB *raiz = arvore->raiz;
     if (raiz->total == arvore->ordem * 2) {
         splitB(arvore, raiz);
-        // Apos split, a raiz muda (foi criada nova raiz acima)
-        // Porem a funcao split ja atualiza arvore->raiz
         insereNaoCheioB(arvore, arvore->raiz, chave);
     } else {
         insereNaoCheioB(arvore, raiz, chave);
     }
 }
 
-/* ------------------ REMOÇÃO (Lógica Complexa) ------------------ */
+/* ------------------ REMOÇÃO ------------------ */
 
-// Assinaturas
 void removerDeNo(ArvoreB *arv, NoB *no, int chave);
 void mergeB(ArvoreB *arv, NoB *no, int idx);
 void preencher(ArvoreB *arv, NoB *no, int idx);
 int getPredecessor(ArvoreB *arv, NoB *no, int idx);
 int getSucessor(ArvoreB *arv, NoB *no, int idx);
 
-// Pega emprestado do irmao anterior
 void borrowFromPrev(ArvoreB *arv, NoB *no, int idx) {
+    arv->comparacoes++; // Conta custo estrutural
     NoB *child = no->filhos[idx];
     NoB *sibling = no->filhos[idx - 1];
 
-    // Shift filho p/ direita
     for (int i = child->total - 1; i >= 0; --i)
         child->chaves[i+1] = child->chaves[i];
 
@@ -213,33 +195,33 @@ void borrowFromPrev(ArvoreB *arv, NoB *no, int idx) {
             child->filhos[i+1] = child->filhos[i];
     }
 
-    child->chaves[0] = no->chaves[idx-1]; // Pai desce
-    
+    child->chaves[0] = no->chaves[idx-1];
+
     if(!child->folha)
         child->filhos[0] = sibling->filhos[sibling->total];
 
     if(child->filhos[0]) child->filhos[0]->pai = child;
 
-    no->chaves[idx-1] = sibling->chaves[sibling->total-1]; // Irmao sobe
+    no->chaves[idx-1] = sibling->chaves[sibling->total-1];
 
     child->total += 1;
     sibling->total -= 1;
 }
 
-// Pega emprestado do irmao seguinte
 void borrowFromNext(ArvoreB *arv, NoB *no, int idx) {
+    arv->comparacoes++; // Conta custo estrutural
     NoB *child = no->filhos[idx];
     NoB *sibling = no->filhos[idx + 1];
 
-    child->chaves[child->total] = no->chaves[idx]; // Pai desce
+    child->chaves[child->total] = no->chaves[idx];
 
     if (!(child->folha))
         child->filhos[child->total + 1] = sibling->filhos[0];
-    
-    if(child->filhos[child->total + 1]) 
+
+    if(child->filhos[child->total + 1])
         child->filhos[child->total + 1]->pai = child;
 
-    no->chaves[idx] = sibling->chaves[0]; // Irmao sobe
+    no->chaves[idx] = sibling->chaves[0];
 
     for (int i = 1; i < sibling->total; ++i)
         sibling->chaves[i-1] = sibling->chaves[i];
@@ -253,22 +235,19 @@ void borrowFromNext(ArvoreB *arv, NoB *no, int idx) {
     sibling->total -= 1;
 }
 
-// Funde filho[idx] com filho[idx+1]
 void mergeB(ArvoreB *arv, NoB *no, int idx) {
+    arv->comparacoes++; // Conta custo estrutural (fusão)
     NoB *child = no->filhos[idx];
     NoB *sibling = no->filhos[idx+1];
     int t = arv->ordem;
 
-    // Desce a chave do pai
-    child->chaves[t] = no->chaves[idx]; 
+    child->chaves[t] = no->chaves[idx];
     int mid = child->total;
     child->chaves[mid] = no->chaves[idx];
-    
-    // Copia chaves do irmao
+
     for (int i=0; i<sibling->total; ++i)
         child->chaves[i + mid + 1] = sibling->chaves[i];
 
-    // Copia filhos do irmao
     if (!child->folha) {
         for(int i=0; i<=sibling->total; ++i) {
             child->filhos[i + mid + 1] = sibling->filhos[i];
@@ -276,7 +255,6 @@ void mergeB(ArvoreB *arv, NoB *no, int idx) {
         }
     }
 
-    // Shift no pai para remover a chave que desceu e o ponteiro do irmao
     for (int i=idx+1; i<no->total; ++i)
         no->chaves[i-1] = no->chaves[i];
 
@@ -291,13 +269,10 @@ void mergeB(ArvoreB *arv, NoB *no, int idx) {
     free(sibling);
 }
 
-// Garante que o filho tenha chaves suficientes antes de descer
 void preencher(ArvoreB *arv, NoB *no, int idx) {
-    int t = arv->ordem; 
-    // Minimo chaves = t (definicao usada no codigo original para split em 2*t)
-    
-    // Se filho idx tem menos de t chaves (underflow iminente)
-    if (idx != 0 && no->filhos[idx-1]->total >= t + 1) // sua logica: min é t
+    int t = arv->ordem;
+
+    if (idx != 0 && no->filhos[idx-1]->total >= t + 1)
         borrowFromPrev(arv, no, idx);
     else if (idx != no->total && no->filhos[idx+1]->total >= t + 1)
         borrowFromNext(arv, no, idx);
@@ -324,43 +299,40 @@ int getSucessor(ArvoreB *arv, NoB *no, int idx) {
 }
 
 void removerDeNo(ArvoreB *arv, NoB *no, int chave) {
+    arv->comparacoes++; // CONTA VISITA AO NÓ NA REMOÇÃO
+
     int idx = buscaBinariaB(arv, no, chave);
-    
-    // A chave está neste nó
+
     if (idx < no->total && no->chaves[idx] == chave) {
         if (no->folha) {
             removerChaveDeNo(no, idx);
         } else {
             int k = no->chaves[idx];
-            
-            // Caso 2a: Filho a esquerda tem chaves suficientes?
-            if (no->filhos[idx]->total >= arv->ordem + 1) { // aqui ajustavel dependendo se min = t ou t-1
+
+            if (no->filhos[idx]->total >= arv->ordem + 1) {
                 int pred = getPredecessor(arv, no, idx);
                 no->chaves[idx] = pred;
                 removerDeNo(arv, no->filhos[idx], pred);
             }
-            // Caso 2b: Filho a direita tem?
             else if (no->filhos[idx+1]->total >= arv->ordem + 1) {
                 int succ = getSucessor(arv, no, idx);
                 no->chaves[idx] = succ;
                 removerDeNo(arv, no->filhos[idx+1], succ);
             }
-            // Caso 2c: Merge
             else {
                 mergeB(arv, no, idx);
                 removerDeNo(arv, no->filhos[idx], k);
             }
         }
     } else {
-        // A chave nao esta aqui, deve estar nos filhos
         if (no->folha) {
-            return; // Chave nao existe na arvore
+            return;
         }
 
         int flag = (idx == no->total) ? 1 : 0;
 
-        if (no->filhos[idx]->total < arv->ordem + 1) { // Proactive fix: se filho é "magro"
-             preencher(arv, no, idx);
+        if (no->filhos[idx]->total < arv->ordem + 1) {
+            preencher(arv, no, idx);
         }
 
         if (flag && idx > no->total)
@@ -375,21 +347,19 @@ void remover_b(ArvoreB *arvore, int chave) {
 
     removerDeNo(arvore, arvore->raiz, chave);
 
-    // Se raiz ficou vazia apos merge
     if (arvore->raiz->total == 0) {
         NoB *tmp = arvore->raiz;
         if (arvore->raiz->folha)
-            arvore->raiz = NULL; // Arvore vazia (cuidado na reimplementacao para nao dar segfault)
+            arvore->raiz = NULL;
         else
             arvore->raiz = arvore->raiz->filhos[0];
-        
+
         if(arvore->raiz) arvore->raiz->pai = NULL;
-        
+
         free(tmp->chaves);
         free(tmp->filhos);
         free(tmp);
-        
-        // Se a arvore ficou vazia, recriamos uma raiz limpa para nao quebrar insercoes futuras
+
         if (arvore->raiz == NULL) {
             arvore->raiz = criaNoB(arvore);
         }
